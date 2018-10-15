@@ -19,11 +19,10 @@ class Base
 	protected function buildSignature(array $request) : string
 	{
 		ksort($request);
-		reset($request);
-
-		$tmp = [];
 		
-		while(list($k, $v) = each($request))
+		$tmp = [];
+
+		foreach($request as $k => $v)
 		{
 			if($k !== 'attachments') {
 				$tmp[] = $k . '=' . $v;
@@ -76,6 +75,4 @@ class Base
         
         return $timestamp['timestamp'];
     }
-
-
 }
