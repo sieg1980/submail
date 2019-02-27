@@ -9,11 +9,15 @@ class Base
 	protected $signType = 'sha1';
 	protected $appId;
 	protected $appKey;
+	protected $smsSubhookKey;
+	protected $emailSubhookKey;
 	
-	function __construct(string $appId, string $appKey)
+	function __construct(string $appId, string $appKey, string $smsSubhookKey, string $emailSubhookKey)
 	{
 		$this->appId = $appId;
 		$this->appKey = $appKey;
+		$this->smsSubhookKey = $smsSubhookKey;
+		$this->emailSubhookKey = $emailSubhookKey
 	}
 	
 	protected function buildSignature(array $request) : string

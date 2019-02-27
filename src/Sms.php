@@ -18,4 +18,12 @@ class Sms extends Base
         $result = $this->httpRequest($api, $request);
         return $result;
 	}
+
+    public function subhookValidate() : bool
+    {
+        $token = $_POST['token'];
+        $signature = $_POST['signature'];
+
+        return md5($token . $this->smsSubhookKey) === $signature;
+    }
 }
