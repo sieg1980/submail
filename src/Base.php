@@ -17,7 +17,7 @@ class Base
 		$this->appId = $appId;
 		$this->appKey = $appKey;
 		$this->smsSubhookKey = $smsSubhookKey;
-		$this->emailSubhookKey = $emailSubhookKey
+		$this->emailSubhookKey = $emailSubhookKey;
 	}
 	
 	protected function buildSignature(array $request) : string
