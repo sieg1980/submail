@@ -2,22 +2,24 @@
 
 namespace Zimutech;
 
+use GuzzleHttp\Client;
+
+require_once '../vendor/autoload.php';
+
+const BASE_URL = 'https://api.mysubmail.com';
+
 class Base
 {
-    const BASE_URL = 'https://api.mysubmail.com/';
-
     protected $signType = 'sha1';
     protected $appId;
     protected $appKey;
-    protected $smsSubhookKey;
-    protected $emailSubhookKey;
+    protected $client;
 
-    function __construct(string $appId, string $appKey, string $smsSubhookKey, string $emailSubhookKey)
+    function __construct(string $appId, string $appKey)
     {
         $this->appId = $appId;
         $this->appKey = $appKey;
-        $this->smsSubhookKey = $smsSubhookKey;
-        $this->emailSubhookKey = $emailSubhookKey;
+        $this->client = new Client(['base_uri' => BASE_URL]);
     }
 
     protected function buildSignature(array $request) : string
@@ -28,48 +30,60 @@ class Base
 
         foreach($request as $k => $v)
         {
-            if(strpos($k, 'attachments') === false) {
+            if($k !== 'attachments') {
                 $tmp[] = $k . '=' . $v;
             }
         }
 
         $arg = implode('&', $tmp);
 
-        $result = sha1($this->appId . $this->appKey . $arg . $this->appId . $this->appKey);
-
-        return $result;
+        return sha1($this->appId . $this->appKey . $arg . $this->appId . $this->appKey);
     }
 
-    protected function httpRequest(string $api, array $data, string $method = 'post') : array
+    protected function httpRequest(string $api, array $data) : array
     {
-        if($method === 'post') {
-            $ch = curl_init($api);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-        } else {
-            $url = $api . '?' . http_build_query($data);
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_BINARYTRANSFER, 1);
+        $multipart = [];
+        $count = 0;
+        foreach ($data as $name => $contents)
+        {
+            if($name !== 'attachments') {
+                $multipart[] = [
+                    'name' => $name,
+                    'contents' => $contents
+                ];
+            } else {
+                if(!is_array($contents)) {
+                    $multipart[] = [
+                        'name' => "attachments[$count]",
+                        'contents' => fopen($contents, 'r')
+                    ];
+                } else {
+                    foreach($contents as $file) {
+                        $multipart[] = [
+                            'name' => "attachments[$count]",
+                            'contents' => fopen($file, 'r')
+                        ];
+                        $count++;
+                    }
+                }
+            }
         }
 
-        $output = curl_exec($ch);
-        curl_close($ch);
-        $output = trim($output, "\xEF\xBB\xBF");
+        $output = $this->client
+            ->post($api, ['multipart' => $multipart])
+            ->getBody()
+            ->getContents();
+
         return json_decode($output, true);
     }
 
     protected function getTimestamp() : string
     {
-        $api = self::BASE_URL . 'service/timestamp.json';
+        $output = $this->client
+            ->get('/service/timestamp.json')
+            ->getBody()
+            ->getContents();
 
-        $ch = curl_init($api) ;
-
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true) ;
-        curl_setopt($ch, CURLOPT_BINARYTRANSFER, true) ;
-
-        $output = curl_exec($ch) ;
         $timestamp = json_decode($output, true);
 
         return $timestamp['timestamp'];

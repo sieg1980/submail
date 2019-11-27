@@ -2,39 +2,44 @@
 
 namespace Zimutech;
 
-require_once('Base.php');
+require_once 'Base.php';
 
 class Mail extends Base
 {
+    private $from;
+    private $from_name;
+    private $reply;
+
+    public function __construct(string $appId, string $appKey, string $from, string $from_name, string $reply)
+    {
+        $this->from = $from;
+        $this->from_name = $from_name;
+        $this->reply = $reply;
+
+        parent::__construct($appId, $appKey);
+    }
+
     public function send(array $request) : array
     {
-        $api = self::BASE_URL . 'mail/send.json';
+        $api = 'mail/send.json';
 
-        if(array_key_exists('attachments', $request)) {
-            $attachments = $request['attachments'];
-
-            for($i = 0; $i < count($attachments); $i++)
-            {
-                $request['attachments['. $i . ']'] = curl_file_create($attachments[$i], mime_content_type($attachments[$i]), $attachments[$i]);
-            }
-
-            unset($request['attachments']);
-        }
+        $request['from'] = $this->from;
+        $request['from_name'] = $this->from_name;
+        $request['reply'] = $this->reply;
 
         $request['appid'] = $this->appId;
         $request['timestamp'] = $this->getTimestamp();
-        $request['sign_type'] = 'sha1';
+        $request['sign_type'] = $this->signType;
         $request['signature'] = $this->buildSignature($request);
 
-        $result = $this->httpRequest($api, $request);
-        return $result;
+        return $this->httpRequest($api, $request);
     }
 
-    public function subhookValidate() : bool
+    public function validate(string $subhookKey) : bool
     {
         $token = $_POST['token'];
         $signature = $_POST['signature'];
 
-        return md5($token . $this->emailSubhookKey) === $signature;
+        return md5($token . $subhookKey) === $signature;
     }
 }
