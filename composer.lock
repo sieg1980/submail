@@ -292,8 +292,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.0.0",
-        "ext-json": "^1.7"
+        "php": ">=7.0.0"
     },
     "platform-dev": []
 }
