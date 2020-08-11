@@ -22,17 +22,20 @@ class Base
         $this->client = new Client(['base_uri' => BASE_URL]);
     }
 
-    protected function buildSignature(array $request) : string
+    protected function buildSignature(array &$request) : string
     {
+        $request['appid'] = $this->appId;
+        $request['timestamp'] = $this->getTimestamp();
+        $request['sign_type'] = $this->signType;
+
         ksort($request);
 
         $tmp = [];
 
         foreach($request as $k => $v)
         {
-            if($k !== 'attachments') {
+            if($k !== 'attachments')
                 $tmp[] = $k . '=' . $v;
-            }
         }
 
         $arg = implode('&', $tmp);
