@@ -4,7 +4,7 @@ namespace Zimutech;
 
 use GuzzleHttp\Client;
 
-const BASE_URL = 'https://api.mysubmail.com';
+const BASE_URL = 'https://api-v4.mysubmail.com';
 
 class Base
 {
