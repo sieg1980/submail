@@ -8,10 +8,10 @@ const BASE_URL = 'https://api-v4.mysubmail.com';
 
 class Base
 {
-    protected $signType = 'sha1';
-    protected $appId;
-    protected $appKey;
-    protected $client;
+    protected string $signType = 'sha1';
+    protected string $appId;
+    protected string $appKey;
+    protected Client $client;
 
     function __construct(string $appId, string $appKey)
     {
@@ -32,7 +32,7 @@ class Base
 
         foreach($request as $k => $v)
         {
-            if($k !== 'attachments')
+            if($k !== 'attachments' && $k !== 'tag')
                 $tmp[] = $k . '=' . $v;
         }
 
